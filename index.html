@@ -84,12 +84,7 @@
     <div><b id="cm">–</b><span>mins</span></div>
   </div>
 
-  <!-- EMAIL CAPTURE ————————————————————————————————————————————
-       PLACEHOLDER ACTION: point this at your mailing tool.
-       Easiest free option: create a form at formspree.io and replace
-       YOUR_FORM_ID below. Until then the button shows the thank-you
-       message but nothing is stored. -->
-  <form id="notify" action="https://formspree.io/f/YOUR_FORM_ID" method="POST">
+  <form id="notify" action="https://formspree.io/f/xwvdjnwp" method="POST">
     <input type="email" name="email" placeholder="you@example.com" required
            autocomplete="email" aria-label="Email address">
     <button type="submit">Notify me at launch</button>
@@ -122,14 +117,25 @@
   }
   tick(); setInterval(tick, 30000);
 
-  // Graceful submit: if the Formspree ID is still the placeholder, don't
-  // navigate anywhere — just show the thank-you locally.
-  document.getElementById("notify").addEventListener("submit", function(e){
-    if (this.action.includes("YOUR_FORM_ID")) {
-      e.preventDefault();
+  // Submit to Formspree via AJAX so the visitor stays on the page.
+  // Thank-you shows ONLY after Formspree confirms the email is stored.
+  document.getElementById("notify").addEventListener("submit", async function(e){
+    e.preventDefault();
+    const btn = this.querySelector("button");
+    btn.disabled = true; btn.textContent = "Adding you…";
+    try {
+      const r = await fetch(this.action, {
+        method: "POST",
+        headers: { "Accept": "application/json" },
+        body: new FormData(this)
+      });
+      if (!r.ok) throw new Error(r.status);
       this.style.display = "none";
       document.querySelector(".reassure").style.display = "none";
       document.getElementById("thanks").style.display = "block";
+    } catch(err) {
+      btn.disabled = false; btn.textContent = "Notify me at launch";
+      alert("Sorry — that didn't go through. Please try again.");
     }
   });
 </script>
